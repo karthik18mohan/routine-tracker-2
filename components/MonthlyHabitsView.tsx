@@ -1,8 +1,6 @@
 "use client";
 
-import { ProgressDonut } from "@/components/ProgressDonut";
 import { useAppStore } from "@/store/useAppStore";
-import { calculateMonthMetrics } from "@/lib/metrics";
 
 export function MonthlyHabitsView() {
   const month = useAppStore((state) =>
@@ -16,62 +14,36 @@ export function MonthlyHabitsView() {
     return null;
   }
 
-  const metrics = calculateMonthMetrics(month);
-
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-        <div className="card flex flex-col items-center gap-4 p-4">
-          <p className="section-title">Monthly Habits</p>
-          <ProgressDonut
-            percent={metrics.monthlyProgress}
-            label="Monthly"
-            sublabel={`${Math.round(metrics.monthlyProgress)}%`}
-          />
-          <div className="w-full space-y-2 text-xs text-slate-600">
-            <div className="flex items-center justify-between">
-              <span>Completed</span>
-              <span className="font-semibold text-slate-700">
-                {month.monthlyHabits.filter((habit) => habit.checked).length}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Incomplete</span>
-              <span className="font-semibold text-slate-700">
-                {month.monthlyHabits.filter((habit) => !habit.checked).length}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="card overflow-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="bg-headerBlue text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                <th className="border border-gridLine px-2 py-2 text-left">Habit</th>
-                <th className="border border-gridLine px-2 py-2 text-center">Done</th>
+      <div className="card overflow-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-headerBlue text-[10px] uppercase tracking-[0.2em] text-slate-500">
+              <th className="border border-gridLine px-2 py-2 text-left">Habit</th>
+              <th className="border border-gridLine px-2 py-2 text-center">Done</th>
+            </tr>
+          </thead>
+          <tbody>
+            {month.monthlyHabits.map((habit) => (
+              <tr key={habit.id}>
+                <td className="border border-gridLine px-2 py-2 text-left">
+                  {habit.name}
+                </td>
+                <td className="border border-gridLine px-2 py-2 text-center">
+                  <button
+                    className={`mx-auto flex h-7 w-7 items-center justify-center border border-gridLine ${
+                      habit.checked ? "bg-checkFill" : "bg-white"
+                    }`}
+                    onClick={() => toggleMonthlyCheck(habit.id)}
+                  >
+                    {habit.checked ? "✓" : ""}
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {month.monthlyHabits.map((habit) => (
-                <tr key={habit.id}>
-                  <td className="border border-gridLine px-2 py-2 text-left">
-                    {habit.name}
-                  </td>
-                  <td className="border border-gridLine px-2 py-2 text-center">
-                    <button
-                      className={`mx-auto flex h-7 w-7 items-center justify-center border border-gridLine ${
-                        habit.checked ? "bg-checkFill" : "bg-white"
-                      }`}
-                      onClick={() => toggleMonthlyCheck(habit.id)}
-                    >
-                      {habit.checked ? "✓" : ""}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         <div className="card p-4">

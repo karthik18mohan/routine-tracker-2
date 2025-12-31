@@ -4,10 +4,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
 import { ProgressDonut } from "@/components/ProgressDonut";
-import { StackedProgressBar } from "@/components/StackedProgressBar";
 import { HabitGrid } from "@/components/HabitGrid";
 import { ProgressTable } from "@/components/ProgressTable";
-import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { TopHabitsTable } from "@/components/TopHabitsTable";
 import { WeeklyHabitsSection } from "@/components/WeeklyHabitsSection";
 import { useEffect } from "react";
@@ -37,8 +35,6 @@ export default function DashboardPage() {
   }
 
   const metrics = calculateMonthMetrics(month);
-  const dailyGoal = month.dailyGoalTarget;
-  const incomplete = metrics.totalPossible - metrics.completed;
   const today = new Date();
   const isCurrentMonth =
     today.getFullYear() === selectedYear && today.getMonth() + 1 === selectedMonth;
@@ -53,18 +49,6 @@ export default function DashboardPage() {
         }, 0);
   const dailyProgressPct =
     dailyTotal === 0 ? 0 : (dailyCompleted / dailyTotal) * 100;
-
-  const stackedSegments = metrics.perHabitStats.map((stat, index) => ({
-    value: stat.count,
-    color: ["#d8c7ff", "#f9b5c8", "#b8e0d2", "#f8d7a8", "#b5d0ff"][
-      index % 5
-    ]
-  }));
-
-  const dailySegments = month.dailyHabits.map((habit, index) => ({
-    value: todayIndex === null ? 0 : month.checks[habit.id]?.[todayIndex] ? 1 : 0,
-    color: ["#d8c7ff", "#f9b5c8", "#b8e0d2", "#f8d7a8", "#b5d0ff"][index % 5]
-  }));
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-4 py-6 md:px-8">
@@ -89,18 +73,8 @@ export default function DashboardPage() {
               </Link>
             </div>
           </div>
-          <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
-            <div className="flex flex-col justify-center gap-6">
-              <div className="flex flex-col justify-center gap-4">
-                <p className="section-title text-center">Daily Progress</p>
-                <StackedProgressBar segments={dailySegments} />
-              </div>
-              <div className="flex flex-col justify-center gap-4">
-                <p className="section-title text-center">Overall Progress</p>
-                <StackedProgressBar segments={stackedSegments} />
-              </div>
-            </div>
-            <div className="flex flex-col justify-between gap-6">
+          <div className="flex justify-end">
+            <div className="flex w-full flex-col justify-between gap-6 lg:w-[260px]">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
@@ -152,13 +126,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[320px_1fr_320px]">
-          <DailySummaryCard
-            percent={metrics.progressPct}
-            completed={metrics.completed}
-            incomplete={incomplete}
-            dailyGoal={dailyGoal}
-          />
+        <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <DailyCompletionChart
             data={metrics.dailyCounts.map((count, index) => ({ day: index + 1, count }))}
           />

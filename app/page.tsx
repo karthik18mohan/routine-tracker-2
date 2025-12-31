@@ -83,67 +83,63 @@ export default function DashboardPage() {
               </Link>
             </div>
           </div>
-          <div className="flex justify-end">
-            <div className="flex w-full flex-col justify-between gap-6 lg:w-[260px]">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                    Daily Progress
-                  </p>
-                  <p className="text-3xl font-semibold text-slate-700">
-                    {Math.round(dailyProgressPct)}%
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    HABITS {dailyCompleted}/{dailyTotal}
-                  </p>
-                </div>
-                <ProgressDonut
-                  percent={dailyProgressPct}
-                  size={100}
-                  stroke={10}
-                  label="Today"
-                  sublabel={`${dailyCompleted}/${dailyTotal}`}
-                />
+          <div className="grid gap-6 sm:grid-cols-2 lg:ml-auto lg:max-w-[520px]">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                  Daily Progress
+                </p>
+                <p className="text-3xl font-semibold text-slate-700">
+                  {Math.round(dailyProgressPct)}%
+                </p>
+                <p className="text-xs text-slate-500">
+                  HABITS {dailyCompleted}/{dailyTotal}
+                </p>
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                    Overall Progress
-                  </p>
-                  <p className="text-3xl font-semibold text-slate-700">
-                    {Math.round(metrics.progressPct)}%
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    HABITS {metrics.completed}/{metrics.totalPossible}
-                  </p>
-                </div>
-                <ProgressDonut
-                  percent={metrics.progressPct}
-                  size={100}
-                  stroke={10}
-                  label="Habits"
-                  sublabel={`${metrics.completed}/${metrics.totalPossible}`}
-                />
+              <ProgressDonut
+                percent={dailyProgressPct}
+                size={100}
+                stroke={10}
+                label="Today"
+                sublabel={`${dailyCompleted}/${dailyTotal}`}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                  Overall Progress
+                </p>
+                <p className="text-3xl font-semibold text-slate-700">
+                  {Math.round(metrics.progressPct)}%
+                </p>
+                <p className="text-xs text-slate-500">
+                  HABITS {metrics.completed}/{metrics.totalPossible}
+                </p>
               </div>
+              <ProgressDonut
+                percent={metrics.progressPct}
+                size={100}
+                stroke={10}
+                label="Habits"
+                sublabel={`${metrics.completed}/${metrics.totalPossible}`}
+              />
             </div>
           </div>
         </header>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-6">
-            <HabitGrid />
-            <MoodJournalCard />
-            <DailySummaryCard
-              percent={dailyProgressPct}
-              completed={dailyCompleted}
-              incomplete={Math.max(dailyTotal - dailyCompleted, 0)}
-              dailyGoal={month.dailyGoalTarget}
-            />
-          </div>
+        <section className="space-y-6">
+          <HabitGrid />
           <ProgressTable stats={metrics.perHabitStats} daysInMonth={metrics.daysInMonth} />
+          <MoodJournalCard />
+          <DailySummaryCard
+            percent={dailyProgressPct}
+            completed={dailyCompleted}
+            incomplete={Math.max(dailyTotal - dailyCompleted, 0)}
+            dailyGoal={month.dailyGoalTarget}
+          />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <section className="grid items-start gap-6 lg:grid-cols-2">
           <DailyCompletionChart
             data={metrics.dailyCounts.map((count, index) => ({ day: index + 1, count }))}
           />
@@ -152,7 +148,7 @@ export default function DashboardPage() {
           />
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <section className="grid items-start gap-6 lg:grid-cols-[1fr_320px]">
           <WeeklyGoalsSection />
           <TopHabitsTable habits={metrics.topHabits} />
         </section>

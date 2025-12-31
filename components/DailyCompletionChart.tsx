@@ -16,7 +16,7 @@ export function DailyCompletionChart({
   data: { day: number; count: number }[];
 }) {
   return (
-    <div className="card flex h-full flex-col p-4">
+    <div className="card flex min-h-[320px] flex-col p-4">
       <p className="section-title">Daily Completion</p>
       <div className="mt-3 flex-1">
         <ResponsiveContainer width="100%" height="100%">

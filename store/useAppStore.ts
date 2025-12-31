@@ -154,6 +154,7 @@ type Store = AppState & {
   updateJournalEntry: (dayIndex: number, entry: string) => Promise<void>;
   addWeeklyGoal: (week: number, text: string) => Promise<void>;
   toggleWeeklyGoal: (goalId: string) => Promise<void>;
+  removeWeeklyGoal: (goalId: string) => Promise<void>;
   importState: (state: AppState) => void;
 };
 
@@ -1031,6 +1032,35 @@ export const useAppStore = create<Store>()(
             console.error("[Supabase] Update weekly goal", error);
             set({
               supabaseError: `Update weekly goal: ${error.message ?? "Unknown error"}`
+            });
+          }
+        }
+      },
+      removeWeeklyGoal: async (goalId) => {
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
+        const key = buildMonthKey(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
+        const weeklyGoals = month.weeklyGoals.filter((goal) => goal.id !== goalId);
+        set({
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, weeklyGoals })
+            }
+          }
+        });
+        if (get().supabaseReady) {
+          const { error } = await supabase.from("weekly_goals").delete().eq("id", goalId);
+          if (error) {
+            console.error("[Supabase] Remove weekly goal", error);
+            set({
+              supabaseError: `Remove weekly goal: ${error.message ?? "Unknown error"}`
             });
           }
         }

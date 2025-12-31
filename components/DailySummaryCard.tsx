@@ -14,7 +14,7 @@ export function DailySummaryCard({
   return (
     <div className="card flex h-full flex-col gap-4 p-4">
       <p className="section-title">Daily Summary</p>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <ProgressDonut percent={percent} size={120} stroke={10} label="Completed" />
         <div className="space-y-3 text-xs text-slate-600">
           <div className="flex items-center justify-between gap-6">

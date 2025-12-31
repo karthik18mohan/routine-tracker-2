@@ -42,7 +42,10 @@ export function MoodJournalCard() {
     <div className="card space-y-6 p-4">
       <div>
         <p className="section-title">Today&apos;s Mood</p>
-        <div className="mt-4 flex items-center justify-between gap-3">
+        <p className="mt-2 text-xs text-slate-500">
+          Your mood is a personal input and isn&apos;t tied to task completion.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           {moodScale.map((mood) => (
             <div key={mood.value} className="flex flex-col items-center text-xs text-slate-500">
               <span

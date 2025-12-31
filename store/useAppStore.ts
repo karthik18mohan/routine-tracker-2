@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { buildMonthKey, getDaysInMonth } from "@/lib/date";
 import { AppState, Habit, MonthState, UserProfile, WeeklyGoal } from "@/lib/types";
 import { safeStorage, STORAGE_KEY, STORAGE_VERSION } from "@/lib/storage";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, supabaseConfigured } from "@/lib/supabaseClient";
 
 const createId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -379,6 +379,10 @@ export const useAppStore = create<Store>()(
       supabaseReady: false,
       supabaseUserId: null,
       initializeSupabase: async () => {
+        if (!supabaseConfigured) {
+          set({ supabaseReady: true, supabaseUserId: null });
+          return;
+        }
         const user = await ensureSupabaseSession();
         const supabaseUserId = user?.id ?? null;
         if (!supabaseUserId) {

@@ -23,10 +23,10 @@ export default function MonthlyPage() {
         <header className="card flex flex-col gap-4 p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="font-serifDisplay text-4xl uppercase tracking-[0.4em] text-slate-700">
+              <h1 className="font-serifDisplay text-3xl uppercase tracking-[0.2em] text-slate-700 sm:text-4xl sm:tracking-[0.4em]">
                 {monthOptions[selectedMonth - 1]}
               </h1>
-              <p className="mt-2 text-xs uppercase tracking-[0.4em] text-slate-500">
+              <p className="mt-2 text-[10px] uppercase tracking-[0.2em] text-slate-500 sm:text-xs sm:tracking-[0.4em]">
                 Monthly Habits & Goals
               </p>
             </div>

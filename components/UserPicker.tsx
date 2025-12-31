@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/useAppStore";
 export function UserPicker() {
   const users = useAppStore((state) => state.users);
   const selectedUserId = useAppStore((state) => state.selectedUserId);
+  const isProfilesLoading = useAppStore((state) => state.isProfilesLoading);
   const selectUser = useAppStore((state) => state.selectUser);
   const addUser = useAppStore((state) => state.addUser);
 
@@ -23,7 +24,7 @@ export function UserPicker() {
         onChange={(event) => selectUser(event.target.value)}
       >
         <option value="" disabled>
-          Select User
+          {isProfilesLoading ? "Loading users..." : "Select User"}
         </option>
         {users.map((user) => (
           <option key={user.id} value={user.id}>

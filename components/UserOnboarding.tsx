@@ -5,6 +5,7 @@ import { useAppStore } from "@/store/useAppStore";
 
 export function UserOnboarding() {
   const users = useAppStore((state) => state.users);
+  const isProfilesLoading = useAppStore((state) => state.isProfilesLoading);
   const selectUser = useAppStore((state) => state.selectUser);
   const addUser = useAppStore((state) => state.addUser);
   const [name, setName] = useState("");
@@ -20,6 +21,12 @@ export function UserOnboarding() {
             Choose or create a profile to begin
           </p>
         </div>
+
+        {isProfilesLoading && (
+          <div className="rounded border border-gridLine bg-white px-3 py-2 text-sm text-slate-500">
+            Loading users from Supabase...
+          </div>
+        )}
 
         {users.length > 0 && (
           <div className="space-y-2">

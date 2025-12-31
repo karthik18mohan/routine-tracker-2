@@ -10,7 +10,6 @@ import { ProgressTable } from "@/components/ProgressTable";
 import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { TopHabitsTable } from "@/components/TopHabitsTable";
 import { WeeklyHabitsSection } from "@/components/WeeklyHabitsSection";
-import { ExportImportControls } from "@/components/ExportImportControls";
 import { useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { calculateMonthMetrics } from "@/lib/metrics";
@@ -40,12 +39,31 @@ export default function DashboardPage() {
   const metrics = calculateMonthMetrics(month);
   const dailyGoal = month.dailyGoalTarget;
   const incomplete = metrics.totalPossible - metrics.completed;
+  const today = new Date();
+  const isCurrentMonth =
+    today.getFullYear() === selectedYear && today.getMonth() + 1 === selectedMonth;
+  const todayIndex = isCurrentMonth ? today.getDate() - 1 : null;
+  const dailyTotal = month.dailyHabits.length;
+  const dailyCompleted =
+    todayIndex === null
+      ? 0
+      : month.dailyHabits.reduce((sum, habit) => {
+          const checked = month.checks[habit.id]?.[todayIndex] ?? false;
+          return sum + (checked ? 1 : 0);
+        }, 0);
+  const dailyProgressPct =
+    dailyTotal === 0 ? 0 : (dailyCompleted / dailyTotal) * 100;
 
   const stackedSegments = metrics.perHabitStats.map((stat, index) => ({
     value: stat.count,
     color: ["#d8c7ff", "#f9b5c8", "#b8e0d2", "#f8d7a8", "#b5d0ff"][
       index % 5
     ]
+  }));
+
+  const dailySegments = month.dailyHabits.map((habit, index) => ({
+    value: todayIndex === null ? 0 : month.checks[habit.id]?.[todayIndex] ? 1 : 0,
+    color: ["#d8c7ff", "#f9b5c8", "#b8e0d2", "#f8d7a8", "#b5d0ff"][index % 5]
   }));
 
   return (
@@ -63,7 +81,6 @@ export default function DashboardPage() {
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <MonthYearPicker />
-              <ExportImportControls />
               <Link
                 href="/monthly"
                 className="rounded-full border border-gridLine px-4 py-1 text-xs uppercase tracking-[0.2em]"
@@ -72,49 +89,58 @@ export default function DashboardPage() {
               </Link>
             </div>
           </div>
-          <div className="grid gap-6 lg:grid-cols-[220px_1fr_220px]">
-            <div className="card flex flex-col justify-center gap-2 bg-white p-4 text-xs">
-              <p className="section-title">Month</p>
-              <div className="grid grid-cols-2 gap-2 text-center">
-                <div className="border border-gridLine p-2">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
-                    Month
-                  </p>
-                  <p className="text-lg font-semibold text-slate-700">
-                    {String(selectedMonth).padStart(2, "0")}
-                  </p>
-                </div>
-                <div className="border border-gridLine p-2">
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
-                    Year
-                  </p>
-                  <p className="text-lg font-semibold text-slate-700">
-                    {selectedYear}
-                  </p>
-                </div>
+          <div className="grid gap-6 lg:grid-cols-[1fr_260px]">
+            <div className="flex flex-col justify-center gap-6">
+              <div className="flex flex-col justify-center gap-4">
+                <p className="section-title text-center">Daily Progress</p>
+                <StackedProgressBar segments={dailySegments} />
+              </div>
+              <div className="flex flex-col justify-center gap-4">
+                <p className="section-title text-center">Overall Progress</p>
+                <StackedProgressBar segments={stackedSegments} />
               </div>
             </div>
-            <div className="flex flex-col justify-center gap-4">
-              <p className="section-title text-center">Overall Progress</p>
-              <StackedProgressBar segments={stackedSegments} />
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Progress</p>
-                <p className="text-3xl font-semibold text-slate-700">
-                  {Math.round(metrics.progressPct)}%
-                </p>
-                <p className="text-xs text-slate-500">
-                  HABITS {metrics.completed}/{metrics.totalPossible}
-                </p>
+            <div className="flex flex-col justify-between gap-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                    Daily Progress
+                  </p>
+                  <p className="text-3xl font-semibold text-slate-700">
+                    {Math.round(dailyProgressPct)}%
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    HABITS {dailyCompleted}/{dailyTotal}
+                  </p>
+                </div>
+                <ProgressDonut
+                  percent={dailyProgressPct}
+                  size={100}
+                  stroke={10}
+                  label="Today"
+                  sublabel={`${dailyCompleted}/${dailyTotal}`}
+                />
               </div>
-              <ProgressDonut
-                percent={metrics.progressPct}
-                size={100}
-                stroke={10}
-                label="Habits"
-                sublabel={`${metrics.completed}/${metrics.totalPossible}`}
-              />
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                    Overall Progress
+                  </p>
+                  <p className="text-3xl font-semibold text-slate-700">
+                    {Math.round(metrics.progressPct)}%
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    HABITS {metrics.completed}/{metrics.totalPossible}
+                  </p>
+                </div>
+                <ProgressDonut
+                  percent={metrics.progressPct}
+                  size={100}
+                  stroke={10}
+                  label="Habits"
+                  sublabel={`${metrics.completed}/${metrics.totalPossible}`}
+                />
+              </div>
             </div>
           </div>
         </header>

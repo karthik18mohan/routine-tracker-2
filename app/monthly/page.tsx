@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { MonthYearPicker } from "@/components/MonthYearPicker";
 import { MonthlyHabitsView } from "@/components/MonthlyHabitsView";
-import { ExportImportControls } from "@/components/ExportImportControls";
 import { useAppStore } from "@/store/useAppStore";
 import { monthOptions } from "@/lib/date";
 
@@ -32,7 +31,6 @@ export default function MonthlyPage() {
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <MonthYearPicker />
-              <ExportImportControls />
               <Link
                 href="/"
                 className="rounded-full border border-gridLine px-4 py-1 text-xs uppercase tracking-[0.2em]"

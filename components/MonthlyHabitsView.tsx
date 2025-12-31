@@ -4,7 +4,11 @@ import { useAppStore } from "@/store/useAppStore";
 
 export function MonthlyHabitsView() {
   const month = useAppStore((state) =>
-    state.months[`${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`]
+    state.selectedUserId
+      ? state.monthsByUser[state.selectedUserId]?.[
+          `${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`
+        ]
+      : undefined
   );
   const toggleMonthlyCheck = useAppStore((state) => state.toggleMonthlyCheck);
   const updateNotes = useAppStore((state) => state.updateNotes);

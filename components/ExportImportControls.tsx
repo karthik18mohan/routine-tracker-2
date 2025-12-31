@@ -10,7 +10,9 @@ export function ExportImportControls() {
     version: state.version,
     selectedYear: state.selectedYear,
     selectedMonth: state.selectedMonth,
-    months: state.months
+    selectedUserId: state.selectedUserId,
+    users: state.users,
+    monthsByUser: state.monthsByUser
   }));
   const importState = useAppStore((state) => state.importState);
 

@@ -8,6 +8,7 @@ import { HabitGrid } from "@/components/HabitGrid";
 import { ProgressTable } from "@/components/ProgressTable";
 import { TopHabitsTable } from "@/components/TopHabitsTable";
 import { WeeklyHabitsSection } from "@/components/WeeklyHabitsSection";
+import { UserPicker } from "@/components/UserPicker";
 import { useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { calculateMonthMetrics } from "@/lib/metrics";
@@ -20,7 +21,11 @@ const DailyCompletionChart = dynamic(
 
 export default function DashboardPage() {
   const month = useAppStore((state) =>
-    state.months[`${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`]
+    state.selectedUserId
+      ? state.monthsByUser[state.selectedUserId]?.[
+          `${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`
+        ]
+      : undefined
   );
   const selectedMonth = useAppStore((state) => state.selectedMonth);
   const selectedYear = useAppStore((state) => state.selectedYear);
@@ -65,6 +70,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex flex-wrap items-center gap-4">
               <MonthYearPicker />
+              <UserPicker />
               <Link
                 href="/monthly"
                 className="rounded-full border border-gridLine px-4 py-1 text-xs uppercase tracking-[0.2em]"

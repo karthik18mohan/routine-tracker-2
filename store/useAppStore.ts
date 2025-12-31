@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { buildMonthKey, getDaysInMonth } from "@/lib/date";
-import { AppState, Habit, MonthState } from "@/lib/types";
+import { AppState, Habit, MonthState, UserProfile } from "@/lib/types";
 import { safeStorage, STORAGE_KEY, STORAGE_VERSION } from "@/lib/storage";
 
 const createHabit = (name: string, index: number): Habit => ({
@@ -11,6 +11,11 @@ const createHabit = (name: string, index: number): Habit => ({
   name,
   goalType: "perDay",
   goalValue: 0
+});
+
+const createUserProfile = (name: string, index: number): UserProfile => ({
+  id: `user-${index}-${name.toLowerCase().replace(/\s+/g, "-")}`,
+  name
 });
 
 const seedDailyHabits = [
@@ -103,6 +108,8 @@ const createDefaultMonth = (year: number, month: number): MonthState => {
 type Store = AppState & {
   setSelectedMonthYear: (year: number, month: number) => void;
   ensureMonth: (year: number, month: number) => void;
+  selectUser: (userId: string) => void;
+  addUser: (name: string) => void;
   toggleDailyCheck: (habitId: string, dayIndex: number) => void;
   toggleWeeklyCheck: (habitId: string, weekIndex: number) => void;
   toggleMonthlyCheck: (habitId: string) => void;
@@ -122,26 +129,57 @@ export const useAppStore = create<Store>()(
       version: STORAGE_VERSION,
       selectedYear: today.getFullYear(),
       selectedMonth: today.getMonth() + 1,
-      months: {},
+      selectedUserId: null,
+      users: [],
+      monthsByUser: {},
       setSelectedMonthYear: (year, month) => {
         set({ selectedYear: year, selectedMonth: month });
         get().ensureMonth(year, month);
       },
       ensureMonth: (year, month) => {
+        const selectedUserId = get().selectedUserId;
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(year, month);
-        const current = get().months[key];
+        const current = get().monthsByUser[selectedUserId]?.[key];
         const nextMonth = current ? normalizeMonth(current) : createDefaultMonth(year, month);
         set({
-          months: {
-            ...get().months,
-            [key]: nextMonth
+          monthsByUser: {
+            ...get().monthsByUser,
+            [selectedUserId]: {
+              ...(get().monthsByUser[selectedUserId] ?? {}),
+              [key]: nextMonth
+            }
           }
         });
       },
+      selectUser: (userId) => {
+        set({ selectedUserId: userId });
+        get().ensureMonth(get().selectedYear, get().selectedMonth);
+      },
+      addUser: (name) => {
+        const trimmed = name.trim();
+        if (!trimmed) {
+          return;
+        }
+        const users = get().users;
+        const user = createUserProfile(trimmed, users.length + 1);
+        set({
+          users: [...users, user],
+          selectedUserId: user.id
+        });
+        get().ensureMonth(get().selectedYear, get().selectedMonth);
+      },
       toggleDailyCheck: (habitId, dayIndex) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         const checks = month.checks[habitId] ?? [];
         const updatedChecks = [...checks];
         updatedChecks[dayIndex] = !updatedChecks[dayIndex];
@@ -153,16 +191,24 @@ export const useAppStore = create<Store>()(
           }
         });
         set({
-          months: {
-            ...months,
-            [key]: updatedMonth
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: updatedMonth
+            }
           }
         });
       },
       toggleWeeklyCheck: (habitId, weekIndex) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         const weeklyHabits = month.weeklyHabits.map((habit) => {
           if (habit.id !== habitId) {
             return habit;
@@ -172,55 +218,87 @@ export const useAppStore = create<Store>()(
           return { ...habit, checksByWeek };
         });
         set({
-          months: {
-            ...months,
-            [key]: normalizeMonth({ ...month, weeklyHabits })
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, weeklyHabits })
+            }
           }
         });
       },
       toggleMonthlyCheck: (habitId) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         const monthlyHabits = month.monthlyHabits.map((habit) =>
           habit.id === habitId ? { ...habit, checked: !habit.checked } : habit
         );
         set({
-          months: {
-            ...months,
-            [key]: normalizeMonth({ ...month, monthlyHabits })
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, monthlyHabits })
+            }
           }
         });
       },
       updateNotes: (notes) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         set({
-          months: {
-            ...months,
-            [key]: normalizeMonth({ ...month, notes })
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, notes })
+            }
           }
         });
       },
       toggleGoal: (goalId) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         const goals = month.goals.map((goal) =>
           goal.id === goalId ? { ...goal, done: !goal.done } : goal
         );
         set({
-          months: {
-            ...months,
-            [key]: normalizeMonth({ ...month, goals })
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, goals })
+            }
           }
         });
       },
       addDailyHabit: (name) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         const habit = createHabit(name, month.dailyHabits.length + 1);
         const dailyHabits = [...month.dailyHabits, habit];
         const checks = {
@@ -228,37 +306,56 @@ export const useAppStore = create<Store>()(
           [habit.id]: Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }, () => false)
         };
         set({
-          months: {
-            ...months,
-            [key]: normalizeMonth({ ...month, dailyHabits, checks })
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, dailyHabits, checks })
+            }
           }
         });
       },
       renameDailyHabit: (habitId, name) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         const dailyHabits = month.dailyHabits.map((habit) =>
           habit.id === habitId ? { ...habit, name } : habit
         );
         set({
-          months: {
-            ...months,
-            [key]: normalizeMonth({ ...month, dailyHabits })
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, dailyHabits })
+            }
           }
         });
       },
       removeDailyHabit: (habitId) => {
-        const { selectedYear, selectedMonth, months } = get();
+        const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+        if (!selectedUserId) {
+          return;
+        }
         const key = buildMonthKey(selectedYear, selectedMonth);
-        const month = months[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+        const month =
+          monthsByUser[selectedUserId]?.[key] ??
+          createDefaultMonth(selectedYear, selectedMonth);
         const dailyHabits = month.dailyHabits.filter((habit) => habit.id !== habitId);
         const checks = { ...month.checks };
         delete checks[habitId];
         set({
-          months: {
-            ...months,
-            [key]: normalizeMonth({ ...month, dailyHabits, checks })
+          monthsByUser: {
+            ...monthsByUser,
+            [selectedUserId]: {
+              ...(monthsByUser[selectedUserId] ?? {}),
+              [key]: normalizeMonth({ ...month, dailyHabits, checks })
+            }
           }
         });
       },
@@ -267,7 +364,9 @@ export const useAppStore = create<Store>()(
           version: state.version,
           selectedYear: state.selectedYear,
           selectedMonth: state.selectedMonth,
-          months: state.months
+          selectedUserId: state.selectedUserId,
+          users: state.users,
+          monthsByUser: state.monthsByUser
         });
       }
     }),
@@ -279,7 +378,19 @@ export const useAppStore = create<Store>()(
         if (!persistedState) {
           return undefined;
         }
-        const state = persistedState as Store;
+        const state = persistedState as Store & { months?: Record<string, MonthState> };
+        if (!state.users || !state.monthsByUser) {
+          const defaultUser = createUserProfile("User 1", 1);
+          return {
+            ...state,
+            version: STORAGE_VERSION,
+            selectedUserId: defaultUser.id,
+            users: [defaultUser],
+            monthsByUser: {
+              [defaultUser.id]: state.months ?? {}
+            }
+          } as Store;
+        }
         return {
           ...state,
           version: STORAGE_VERSION

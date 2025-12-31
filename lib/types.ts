@@ -37,9 +37,16 @@ export type MonthState = {
   dailyGoalTarget: number;
 };
 
+export type UserProfile = {
+  id: string;
+  name: string;
+};
+
 export type AppState = {
   version: number;
   selectedYear: number;
   selectedMonth: number;
-  months: Record<string, MonthState>;
+  selectedUserId: string | null;
+  users: UserProfile[];
+  monthsByUser: Record<string, Record<string, MonthState>>;
 };

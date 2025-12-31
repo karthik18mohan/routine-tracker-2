@@ -9,6 +9,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const setSelectedMonthYear = useAppStore((state) => state.setSelectedMonthYear);
   const initializeSupabase = useAppStore((state) => state.initializeSupabase);
   const supabaseReady = useAppStore((state) => state.supabaseReady);
+  const supabaseError = useAppStore((state) => state.supabaseError);
 
   useEffect(() => {
     const today = new Date();
@@ -33,5 +34,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return <UserOnboarding />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {supabaseError && (
+        <div className="mx-auto w-full max-w-[1400px] px-4 pt-6 md:px-8">
+          <div className="card border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <p className="font-semibold">Supabase sync issue</p>
+            <p className="mt-1">{supabaseError}</p>
+            <p className="mt-2 text-xs text-amber-800">
+              Ensure anonymous auth is enabled and your RLS policies allow access for the current
+              user.
+            </p>
+          </div>
+        </div>
+      )}
+      {children}
+    </>
+  );
 }

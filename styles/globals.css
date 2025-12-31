@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --header-blue: #d7e3f6;
+  --panel-pink: #f7e7ea;
+  --grid-line: #d7dce2;
+  --muted-text: #6b7280;
+  --accent-fill: #b9d2ff;
+  --check-fill: #cfead9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-[#f9fafb] text-slate-900 font-sansDisplay;
+}
+
+.spreadsheet-cell {
+  @apply border border-gridLine text-center text-xs text-slate-600;
+}
+
+.spreadsheet-header {
+  @apply bg-headerBlue text-xs uppercase tracking-[0.2em] text-slate-600;
+}
+
+.section-title {
+  @apply text-xs font-semibold uppercase tracking-[0.35em] text-slate-500;
+}
+
+.card {
+  @apply bg-white border border-gridLine rounded-2xl shadow-soft;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #cbd5f5;
+  border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}

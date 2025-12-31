@@ -14,16 +14,17 @@ const createHabit = (name: string, index: number): Habit => ({
 });
 
 const seedDailyHabits = [
-  "Wake up at 6:00 am",
-  "Make the bed",
-  "Do morning skincare routine",
-  "Eat a healthy breakfast",
-  "Move body for 30 minutes",
-  "Reply to emails",
-  "Drink 8 glasses of water",
-  "Limit social media use to 1 hour",
-  "Read one chapter of a book",
-  "Write in journal"
+  "Wake up before 6:00 am",
+  "Beard routine",
+  "Pooja",
+  "Gym",
+  "Diet",
+  "Brush",
+  "10k Steps",
+  "50 Pushups",
+  "Abs Workout",
+  "Project",
+  "Certification Course"
 ];
 
 const seedWeeklyHabits = [

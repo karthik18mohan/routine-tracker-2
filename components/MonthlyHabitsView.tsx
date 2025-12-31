@@ -10,12 +10,17 @@ export function MonthlyHabitsView() {
         ]
       : undefined
   );
+  const isMonthLoading = useAppStore((state) => state.isMonthLoading);
   const toggleMonthlyCheck = useAppStore((state) => state.toggleMonthlyCheck);
   const updateNotes = useAppStore((state) => state.updateNotes);
   const toggleGoal = useAppStore((state) => state.toggleGoal);
 
   if (!month) {
-    return null;
+    return (
+      <div className="card p-6 text-center text-sm text-slate-500">
+        {isMonthLoading ? "Loading monthly habits..." : "No monthly data available yet."}
+      </div>
+    );
   }
 
   return (

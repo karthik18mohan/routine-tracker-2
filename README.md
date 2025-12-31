@@ -27,8 +27,7 @@ npm run start
 
 ## Data Storage & Export
 
-- Data is stored in `localStorage` under the key `habit-tracker-state`.
-- The schema is versioned so future migrations are safe.
+- Data is stored and synced in Supabase for cross-device consistency.
 - Use the **Export JSON** button to download a backup file.
 - Use **Import JSON** to restore state from a file.
 

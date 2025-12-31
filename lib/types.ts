@@ -13,6 +13,13 @@ export type WeeklyHabit = {
   checksByWeek: boolean[];
 };
 
+export type WeeklyGoal = {
+  id: string;
+  text: string;
+  week: number;
+  done?: boolean;
+};
+
 export type MonthlyHabit = {
   id: string;
   name: string;
@@ -26,6 +33,7 @@ export type GoalItem = {
 };
 
 export type MonthState = {
+  id?: string;
   year: number;
   month: number;
   dailyHabits: Habit[];
@@ -33,7 +41,10 @@ export type MonthState = {
   weeklyHabits: WeeklyHabit[];
   monthlyHabits: MonthlyHabit[];
   goals: GoalItem[];
+  weeklyGoals: WeeklyGoal[];
   notes: string;
+  moodByDay: number[];
+  journalEntries: string[];
   dailyGoalTarget: number;
 };
 

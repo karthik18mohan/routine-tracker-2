@@ -7,7 +7,11 @@ import { calculateMonthMetrics } from "@/lib/metrics";
 
 export function WeeklyHabitsSection() {
   const month = useAppStore((state) =>
-    state.months[`${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`]
+    state.selectedUserId
+      ? state.monthsByUser[state.selectedUserId]?.[
+          `${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`
+        ]
+      : undefined
   );
   const toggleWeeklyCheck = useAppStore((state) => state.toggleWeeklyCheck);
   const [selectedWeek, setSelectedWeek] = useState("ALL");

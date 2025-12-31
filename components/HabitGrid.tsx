@@ -17,7 +17,11 @@ export function HabitGrid() {
   const selectedYear = useAppStore((state) => state.selectedYear);
   const ensureMonth = useAppStore((state) => state.ensureMonth);
   const month = useAppStore((state) =>
-    state.months[`${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`]
+    state.selectedUserId
+      ? state.monthsByUser[state.selectedUserId]?.[
+          `${state.selectedYear}-${String(state.selectedMonth).padStart(2, "0")}`
+        ]
+      : undefined
   );
   const toggleDailyCheck = useAppStore((state) => state.toggleDailyCheck);
   const renameDailyHabit = useAppStore((state) => state.renameDailyHabit);
@@ -43,6 +47,11 @@ export function HabitGrid() {
     return () => window.removeEventListener("mouseup", stopDragging);
   }, []);
 
+  const today = new Date();
+  const isCurrentMonth =
+    today.getFullYear() === selectedYear && today.getMonth() + 1 === selectedMonth;
+  const todayIndex = isCurrentMonth ? today.getDate() - 1 : null;
+
   const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
 
   const weekSegments = useMemo(() => {
@@ -62,6 +71,22 @@ export function HabitGrid() {
     }
     return segments;
   }, [daysInMonth, selectedMonth, selectedYear]);
+
+  useEffect(() => {
+    if (todayIndex === null || !month) {
+      return;
+    }
+    const container = gridRef.current;
+    if (!container) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      const target = container.querySelector<HTMLButtonElement>(
+        `[data-row='0'][data-col='${todayIndex}']`
+      );
+      target?.scrollIntoView({ block: "nearest", inline: "center" });
+    });
+  }, [todayIndex, selectedMonth, selectedYear, month]);
 
   if (!month) {
     return null;

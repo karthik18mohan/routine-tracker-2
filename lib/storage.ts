@@ -1,5 +1,5 @@
 export const STORAGE_KEY = "habit-tracker-state";
-export const STORAGE_VERSION = 1;
+export const STORAGE_VERSION = 2;
 
 export const safeStorage = {
   getItem: (name: string) => {

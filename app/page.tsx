@@ -8,6 +8,10 @@ import { HabitGrid } from "@/components/HabitGrid";
 import { ProgressTable } from "@/components/ProgressTable";
 import { TopHabitsTable } from "@/components/TopHabitsTable";
 import { WeeklyHabitsSection } from "@/components/WeeklyHabitsSection";
+import { WeeklyGoalsSection } from "@/components/WeeklyGoalsSection";
+import { MoodJournalCard } from "@/components/MoodJournalCard";
+import { MoodLineChart } from "@/components/MoodLineChart";
+import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { UserPicker } from "@/components/UserPicker";
 import { useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
@@ -126,16 +130,30 @@ export default function DashboardPage() {
         </header>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
+          <div className="space-y-6">
             <HabitGrid />
-            <ProgressTable stats={metrics.perHabitStats} daysInMonth={metrics.daysInMonth} />
+            <MoodJournalCard />
+            <DailySummaryCard
+              percent={dailyProgressPct}
+              completed={dailyCompleted}
+              incomplete={Math.max(dailyTotal - dailyCompleted, 0)}
+              dailyGoal={month.dailyGoalTarget}
+            />
           </div>
+          <ProgressTable stats={metrics.perHabitStats} daysInMonth={metrics.daysInMonth} />
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <DailyCompletionChart
             data={metrics.dailyCounts.map((count, index) => ({ day: index + 1, count }))}
           />
+          <MoodLineChart
+            data={month.moodByDay.map((mood, index) => ({ day: index + 1, mood }))}
+          />
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
+          <WeeklyGoalsSection />
           <TopHabitsTable habits={metrics.topHabits} />
         </section>
 

@@ -244,11 +244,6 @@ export function HabitGrid() {
                         data-col={colIndex}
                         onMouseDown={() => handleMouseDown(habit.id, colIndex)}
                         onMouseEnter={() => handleMouseEnter(habit.id, colIndex)}
-                        onClick={() => {
-                          if (!isDragging) {
-                            handleCellToggle(habit.id, colIndex);
-                          }
-                        }}
                         onKeyDown={(event) =>
                           handleCellKeyDown(event, rowIndex, colIndex, habit.id)
                         }

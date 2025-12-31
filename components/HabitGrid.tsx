@@ -147,7 +147,7 @@ export function HabitGrid() {
   };
 
   return (
-    <div className="card flex h-full flex-col overflow-hidden">
+    <div className="card flex flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-gridLine bg-panelPink px-4 py-3">
         <div>
           <p className="section-title">Daily Habits</p>
@@ -176,7 +176,7 @@ export function HabitGrid() {
       </div>
       <div
         ref={gridRef}
-        className="scrollbar-thin h-full overflow-auto bg-white"
+        className="scrollbar-thin max-h-[65vh] overflow-auto bg-white"
       >
         <table className="min-w-max border-collapse text-xs">
           <thead>

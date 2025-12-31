@@ -13,6 +13,7 @@ export function WeeklyGoalsSection() {
   );
   const addWeeklyGoal = useAppStore((state) => state.addWeeklyGoal);
   const toggleWeeklyGoal = useAppStore((state) => state.toggleWeeklyGoal);
+  const removeWeeklyGoal = useAppStore((state) => state.removeWeeklyGoal);
   const [weekFilter, setWeekFilter] = useState("ALL");
   const [goalText, setGoalText] = useState("");
   const [goalWeek, setGoalWeek] = useState("1");
@@ -54,11 +55,11 @@ export function WeeklyGoalsSection() {
           <p className="text-sm text-slate-500">No goals set yet. Add one below.</p>
         )}
         {filteredGoals.map((goal) => (
-          <label
+          <div
             key={goal.id}
-            className="flex items-center justify-between gap-3 border-b border-dashed border-gridLine pb-2 text-sm"
+            className="flex flex-wrap items-center justify-between gap-3 border-b border-dashed border-gridLine pb-2 text-sm"
           >
-            <div className="flex items-center gap-3">
+            <label className="flex items-center gap-3">
               <input
                 type="checkbox"
                 className="h-4 w-4"
@@ -68,11 +69,19 @@ export function WeeklyGoalsSection() {
               <span className={goal.done ? "line-through text-slate-400" : ""}>
                 {goal.text}
               </span>
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="rounded-full border border-gridLine px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                Week {goal.week}
+              </span>
+              <button
+                className="text-[10px] uppercase tracking-[0.2em] text-rose-400"
+                onClick={() => removeWeeklyGoal(goal.id)}
+              >
+                Remove
+              </button>
             </div>
-            <span className="rounded-full border border-gridLine px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-500">
-              Week {goal.week}
-            </span>
-          </label>
+          </div>
         ))}
       </div>
 

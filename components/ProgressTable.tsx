@@ -8,7 +8,7 @@ export function ProgressTable({
   daysInMonth: number;
 }) {
   return (
-    <div className="card flex h-full flex-col">
+    <div className="card flex flex-col">
       <div className="border-b border-gridLine bg-panelPink px-4 py-3">
         <p className="section-title">Progress</p>
       </div>

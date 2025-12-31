@@ -12,7 +12,7 @@ export function DailySummaryCard({
   dailyGoal: number;
 }) {
   return (
-    <div className="card flex h-full flex-col gap-4 p-4">
+    <div className="card flex flex-col gap-4 p-4">
       <p className="section-title">Daily Summary</p>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <ProgressDonut percent={percent} size={120} stroke={10} label="Completed" />

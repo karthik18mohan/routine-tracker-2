@@ -12,7 +12,7 @@ import {
 
 export function MoodLineChart({ data }: { data: { day: number; mood: number }[] }) {
   return (
-    <div className="card flex h-full flex-col p-4">
+    <div className="card flex min-h-[320px] flex-col p-4">
       <p className="section-title">Mood Over the Month</p>
       <div className="mt-3 flex-1">
         <ResponsiveContainer width="100%" height="100%">

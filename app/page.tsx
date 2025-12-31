@@ -34,13 +34,22 @@ export default function DashboardPage() {
   const selectedMonth = useAppStore((state) => state.selectedMonth);
   const selectedYear = useAppStore((state) => state.selectedYear);
   const ensureMonth = useAppStore((state) => state.ensureMonth);
+  const isMonthLoading = useAppStore((state) => state.isMonthLoading);
 
   useEffect(() => {
     ensureMonth(selectedYear, selectedMonth);
   }, [ensureMonth, selectedMonth, selectedYear]);
 
   if (!month) {
-    return null;
+    return (
+      <main className="min-h-screen bg-[#f6f7fb] px-4 py-6 md:px-8">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-6">
+          <div className="card p-6 text-center text-sm text-slate-500">
+            {isMonthLoading ? "Loading your habits..." : "No habit data available yet."}
+          </div>
+        </div>
+      </main>
+    );
   }
 
   const metrics = calculateMonthMetrics(month);

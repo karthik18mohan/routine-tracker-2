@@ -89,19 +89,11 @@ export function MoodJournalCard() {
           step={0.01}
           value={sliderValue}
           onChange={(event) => setSliderValue(Number(event.target.value))}
-          onPointerDown={(event) => {
-            event.preventDefault();
-            event.currentTarget.focus({ preventScroll: true });
-          }}
-          onTouchStart={(event) => {
-            event.preventDefault();
-            event.currentTarget.focus({ preventScroll: true });
-          }}
           onPointerUp={(event) => commitMood(Number(event.currentTarget.value))}
           onTouchEnd={(event) => commitMood(Number(event.currentTarget.value))}
           onKeyUp={(event) => commitMood(Number(event.currentTarget.value))}
           className="mt-4 w-full touch-none"
-          style={{ touchAction: "none" }}
+          style={{ touchAction: "pan-x" }}
         />
       </div>
       <div>

@@ -176,13 +176,12 @@ const ensureSupabaseSession = async () => {
   return { user: anonData.user ?? null, error: null };
 };
 
-const fetchProfilesFromSupabase = async (ownerId: string) =>
-  supabase.from("profiles").select("id,name").eq("owner_id", ownerId).order("created_at");
+const fetchProfilesFromSupabase = async () =>
+  supabase.from("profiles").select("id,name").order("created_at");
 
-const createProfileInSupabase = async (ownerId: string, profile: UserProfile) =>
+const createProfileInSupabase = async (profile: UserProfile) =>
   supabase.from("profiles").insert({
     id: profile.id,
-    owner_id: ownerId,
     name: profile.name
   });
 
@@ -537,12 +536,9 @@ export const useAppStore = create<Store>()((set, get) => ({
   },
 
   refreshProfiles: async (preferredUserId) => {
-    const supabaseUserId = get().supabaseUserId;
-    if (!supabaseUserId) return;
-
     set({ isProfilesLoading: true });
 
-    const { data: profiles, error: profilesError } = await fetchProfilesFromSupabase(supabaseUserId);
+    const { data: profiles, error: profilesError } = await fetchProfilesFromSupabase();
     if (profilesError) {
       console.error("[Supabase] Load profiles", profilesError);
       set({
@@ -556,7 +552,7 @@ export const useAppStore = create<Store>()((set, get) => ({
 
     if (users.length === 0) {
       const newProfile = createUserProfile("User 1", 1);
-      const { error: insertProfileError } = await createProfileInSupabase(supabaseUserId, newProfile);
+      const { error: insertProfileError } = await createProfileInSupabase(newProfile);
       if (insertProfileError) {
         console.error("[Supabase] Create default profile", insertProfileError);
         set({
@@ -669,9 +665,8 @@ export const useAppStore = create<Store>()((set, get) => ({
     const users = get().users;
     const user = createUserProfile(trimmed, users.length + 1);
 
-    const supabaseUserId = get().supabaseUserId;
-    if (get().supabaseReady && supabaseUserId) {
-      const { error } = await createProfileInSupabase(supabaseUserId, user);
+    if (get().supabaseReady) {
+      const { error } = await createProfileInSupabase(user);
       if (error) {
         console.error("[Supabase] Create user profile", error);
         set({

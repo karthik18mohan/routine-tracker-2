@@ -65,6 +65,29 @@ const seedWeeklyGoals = [
 ];
 
 const STORAGE_VERSION = 2;
+const SELECTED_USER_STORAGE_KEY = "routine_tracker_selected_profile_id";
+
+const getPersistedSelectedUserId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem(SELECTED_USER_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+};
+
+const persistSelectedUserId = (id: string | null): void => {
+  if (typeof window === "undefined") return;
+  try {
+    if (id) {
+      window.localStorage.setItem(SELECTED_USER_STORAGE_KEY, id);
+    } else {
+      window.localStorage.removeItem(SELECTED_USER_STORAGE_KEY);
+    }
+  } catch {
+    // Ignore storage errors.
+  }
+};
 
 const normalizeMonth = (month: MonthState): MonthState => {
   const days = getDaysInMonth(month.year, month.month);
@@ -534,9 +557,15 @@ export const useAppStore = create<Store>()((set, get) => ({
       users = [newProfile];
     }
 
-    const desiredSelection = preferredUserId ?? get().selectedUserId;
+    const persistedUserId = getPersistedSelectedUserId();
+    const currentSelectedUserId = get().selectedUserId;
+    const desiredSelection =
+      preferredUserId ??
+      (persistedUserId && users.some((user) => user.id === persistedUserId)
+        ? persistedUserId
+        : currentSelectedUserId);
     const selectedUserId =
-      desiredSelection && users.some((u) => u.id === desiredSelection)
+      desiredSelection && users.some((user) => user.id === desiredSelection)
         ? desiredSelection
         : users[0]?.id ?? null;
 
@@ -546,6 +575,7 @@ export const useAppStore = create<Store>()((set, get) => ({
       supabaseError: null,
       isProfilesLoading: false
     });
+    persistSelectedUserId(selectedUserId);
   },
 
   refreshMonth: async (year, month) => {
@@ -625,6 +655,7 @@ export const useAppStore = create<Store>()((set, get) => ({
 
   selectUser: async (userId) => {
     set({ selectedUserId: userId });
+    persistSelectedUserId(userId);
     await get().ensureMonth(get().selectedYear, get().selectedMonth);
   },
 
@@ -649,6 +680,7 @@ export const useAppStore = create<Store>()((set, get) => ({
       users: [...users, user],
       selectedUserId: user.id
     });
+    persistSelectedUserId(user.id);
 
     if (get().supabaseReady) {
       await get().refreshProfiles(user.id);

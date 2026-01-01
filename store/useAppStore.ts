@@ -739,19 +739,21 @@ export const useAppStore = create<Store>()((set, get) => ({
 
 
   toggleWeeklyCheck: async (habitId, weekIndex) => {
-    const { selectedYear, selectedMonth, selectedUserId } = get();
+    const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get(); // ✅ monthsByUser added
     if (!selectedUserId) return;
-
+  
     const key = buildMonthKey(selectedYear, selectedMonth);
-    const month = monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
-
+    const month =
+      monthsByUser[selectedUserId]?.[key] ??
+      createDefaultMonth(selectedYear, selectedMonth);
+  
     const weeklyHabits = month.weeklyHabits.map((habit) => {
       if (habit.id !== habitId) return habit;
       const checksByWeek = [...habit.checksByWeek];
       checksByWeek[weekIndex] = !checksByWeek[weekIndex];
       return { ...habit, checksByWeek };
     });
-
+  
     set({
       monthsByUser: {
         ...monthsByUser,
@@ -761,14 +763,17 @@ export const useAppStore = create<Store>()((set, get) => ({
         }
       }
     });
-
+  
     if (get().supabaseReady) {
       const habit = weeklyHabits.find((item) => item.id === habitId);
       const checked = habit?.checksByWeek[weekIndex] ?? false;
+  
       const { error } = await upsertWeeklyCheck(habitId, weekIndex + 1, checked);
       if (error) {
         console.error("[Supabase] Update weekly check", error);
-        set({ supabaseError: `Update weekly check: ${error.message ?? "Unknown error"}` });
+        set({
+          supabaseError: `Update weekly check: ${error.message ?? "Unknown error"}`
+        });
       } else {
         await get().refreshMonth(selectedYear, selectedMonth);
       }
@@ -776,16 +781,18 @@ export const useAppStore = create<Store>()((set, get) => ({
   },
 
   toggleMonthlyCheck: async (habitId) => {
-    const { selectedYear, selectedMonth, selectedUserId } = get();
+    const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get(); // ✅ monthsByUser added
     if (!selectedUserId) return;
-
+  
     const key = buildMonthKey(selectedYear, selectedMonth);
-    const month = monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
-
+    const month =
+      monthsByUser[selectedUserId]?.[key] ??
+      createDefaultMonth(selectedYear, selectedMonth);
+  
     const monthlyHabits = month.monthlyHabits.map((habit) =>
       habit.id === habitId ? { ...habit, checked: !habit.checked } : habit
     );
-
+  
     set({
       monthsByUser: {
         ...monthsByUser,
@@ -795,13 +802,16 @@ export const useAppStore = create<Store>()((set, get) => ({
         }
       }
     });
-
+  
     if (get().supabaseReady) {
       const habit = monthlyHabits.find((item) => item.id === habitId);
       const { error } = await updateMonthlyHabitCheck(habitId, habit?.checked ?? false);
+  
       if (error) {
         console.error("[Supabase] Update monthly habit", error);
-        set({ supabaseError: `Update monthly habit: ${error.message ?? "Unknown error"}` });
+        set({
+          supabaseError: `Update monthly habit: ${error.message ?? "Unknown error"}`
+        });
       } else {
         await get().refreshMonth(selectedYear, selectedMonth);
       }

@@ -42,8 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <p className="font-semibold">Supabase sync issue</p>
             <p className="mt-1">{supabaseError}</p>
             <p className="mt-2 text-xs text-amber-800">
-              Ensure anonymous auth is enabled and your RLS policies allow access for the current
-              user.
+              Ensure your tables are publicly accessible or RLS is disabled for this project.
             </p>
           </div>
         </div>

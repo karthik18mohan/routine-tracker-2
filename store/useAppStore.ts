@@ -132,7 +132,6 @@ const createDefaultMonth = (year: number, month: number): MonthState => {
 
 type Store = AppState & {
   supabaseReady: boolean;
-  supabaseUserId: string | null;
   supabaseError: string | null;
   isMonthLoading: boolean;
   isProfilesLoading: boolean;
@@ -160,21 +159,6 @@ type Store = AppState & {
 };
 
 const today = new Date();
-
-const ensureSupabaseSession = async () => {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) {
-    return { user: null, error };
-  }
-  if (data.session?.user) {
-    return { user: data.session.user, error: null };
-  }
-  const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
-  if (anonError) {
-    return { user: null, error: anonError };
-  }
-  return { user: anonData.user ?? null, error: null };
-};
 
 const fetchProfilesFromSupabase = async () =>
   supabase.from("profiles").select("id,name").order("created_at");
@@ -496,14 +480,13 @@ export const useAppStore = create<Store>()((set, get) => ({
   users: [],
   monthsByUser: {},
   supabaseReady: false,
-  supabaseUserId: null,
   supabaseError: null,
   isMonthLoading: false,
   isProfilesLoading: false,
 
   initializeSupabase: async () => {
     if (!supabaseConfigured) {
-      set({ supabaseReady: true, supabaseUserId: null, isProfilesLoading: false });
+      set({ supabaseReady: true, isProfilesLoading: false });
       return;
     }
 
@@ -514,19 +497,6 @@ export const useAppStore = create<Store>()((set, get) => ({
       return true;
     };
 
-    const { user, error } = await ensureSupabaseSession();
-    if (reportSupabaseError(error, "Auth session")) {
-      set({ supabaseReady: true, supabaseUserId: null, isProfilesLoading: false });
-      return;
-    }
-
-    const supabaseUserId = user?.id ?? null;
-    if (!supabaseUserId) {
-      set({ supabaseReady: true, supabaseUserId: null, isProfilesLoading: false });
-      return;
-    }
-
-    set({ supabaseUserId });
     await get().refreshProfiles();
     set({ supabaseReady: true });
 

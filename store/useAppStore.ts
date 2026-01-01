@@ -693,21 +693,23 @@ export const useAppStore = create<Store>()((set, get) => ({
   // --- everything below unchanged from your snippet ---
 
   toggleDailyCheck: async (habitId, dayIndex) => {
-    const { selectedYear, selectedMonth, selectedUserId } = get();
+    const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get(); // ✅ add monthsByUser
     if (!selectedUserId) return;
-
+  
     const key = buildMonthKey(selectedYear, selectedMonth);
-    const month = monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
-
+    const month =
+      monthsByUser[selectedUserId]?.[key] ??
+      createDefaultMonth(selectedYear, selectedMonth);
+  
     const checks = month.checks[habitId] ?? [];
     const updatedChecks = [...checks];
     updatedChecks[dayIndex] = !updatedChecks[dayIndex];
-
+  
     const updatedMonth: MonthState = normalizeMonth({
       ...month,
       checks: { ...month.checks, [habitId]: updatedChecks }
     });
-
+  
     set({
       monthsByUser: {
         ...monthsByUser,
@@ -717,17 +719,24 @@ export const useAppStore = create<Store>()((set, get) => ({
         }
       }
     });
-
+  
     if (get().supabaseReady) {
-      const { error } = await upsertDailyCheck(habitId, dayIndex + 1, updatedChecks[dayIndex]);
+      const { error } = await upsertDailyCheck(
+        habitId,
+        dayIndex + 1,
+        updatedChecks[dayIndex]
+      );
       if (error) {
         console.error("[Supabase] Update daily check", error);
-        set({ supabaseError: `Update daily check: ${error.message ?? "Unknown error"}` });
+        set({
+          supabaseError: `Update daily check: ${error.message ?? "Unknown error"}`
+        });
       } else {
         await get().refreshMonth(selectedYear, selectedMonth);
       }
     }
   },
+
 
   toggleWeeklyCheck: async (habitId, weekIndex) => {
     const { selectedYear, selectedMonth, selectedUserId } = get();

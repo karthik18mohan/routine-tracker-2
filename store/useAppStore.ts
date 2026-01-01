@@ -693,7 +693,7 @@ export const useAppStore = create<Store>()((set, get) => ({
   // --- everything below unchanged from your snippet ---
 
   toggleDailyCheck: async (habitId, dayIndex) => {
-    const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+    const { selectedYear, selectedMonth, selectedUserId } = get();
     if (!selectedUserId) return;
 
     const key = buildMonthKey(selectedYear, selectedMonth);
@@ -730,7 +730,7 @@ export const useAppStore = create<Store>()((set, get) => ({
   },
 
   toggleWeeklyCheck: async (habitId, weekIndex) => {
-    const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+    const { selectedYear, selectedMonth, selectedUserId } = get();
     if (!selectedUserId) return;
 
     const key = buildMonthKey(selectedYear, selectedMonth);
@@ -767,7 +767,7 @@ export const useAppStore = create<Store>()((set, get) => ({
   },
 
   toggleMonthlyCheck: async (habitId) => {
-    const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+    const { selectedYear, selectedMonth, selectedUserId } = get();
     if (!selectedUserId) return;
 
     const key = buildMonthKey(selectedYear, selectedMonth);
@@ -800,7 +800,7 @@ export const useAppStore = create<Store>()((set, get) => ({
   },
 
   updateNotes: async (notes) => {
-    const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
+    const { selectedYear, selectedMonth, selectedUserId } = get();
     if (!selectedUserId) return;
 
     const key = buildMonthKey(selectedYear, selectedMonth);
@@ -862,8 +862,12 @@ export const useAppStore = create<Store>()((set, get) => ({
     const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
     if (!selectedUserId) return;
 
+    await get().ensureMonth(selectedYear, selectedMonth);
+
     const key = buildMonthKey(selectedYear, selectedMonth);
-    const month = monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const month =
+      get().monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const latestMonthsByUser = get().monthsByUser;
 
     const habit = createHabit(name, month.dailyHabits.length + 1);
     const dailyHabits = [...month.dailyHabits, habit];
@@ -874,16 +878,26 @@ export const useAppStore = create<Store>()((set, get) => ({
 
     set({
       monthsByUser: {
-        ...monthsByUser,
+        ...latestMonthsByUser,
         [selectedUserId]: {
-          ...(monthsByUser[selectedUserId] ?? {}),
+          ...(latestMonthsByUser[selectedUserId] ?? {}),
           [key]: normalizeMonth({ ...month, dailyHabits, checks })
         }
       }
     });
 
-    if (get().supabaseReady && month.id) {
-      const { error } = await insertDailyHabit(month.id, habit, dailyHabits.length - 1);
+    if (get().supabaseReady) {
+      const persistedMonth = await get().refreshMonth(selectedYear, selectedMonth);
+      const monthId = persistedMonth?.id;
+      if (!monthId) {
+        set({
+          supabaseError:
+            "Add daily habit: Month has not been created in Supabase yet. Please try again."
+        });
+        return;
+      }
+
+      const { error } = await insertDailyHabit(monthId, habit, dailyHabits.length - 1);
       if (error) {
         console.error("[Supabase] Add daily habit", error);
         set({ supabaseError: `Add daily habit: ${error.message ?? "Unknown error"}` });
@@ -959,24 +973,38 @@ export const useAppStore = create<Store>()((set, get) => ({
     const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
     if (!selectedUserId) return;
 
+    await get().ensureMonth(selectedYear, selectedMonth);
+
     const key = buildMonthKey(selectedYear, selectedMonth);
-    const month = monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const month =
+      get().monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const latestMonthsByUser = get().monthsByUser;
 
     const moodByDay = [...month.moodByDay];
     moodByDay[dayIndex] = mood;
 
     set({
       monthsByUser: {
-        ...monthsByUser,
+        ...latestMonthsByUser,
         [selectedUserId]: {
-          ...(monthsByUser[selectedUserId] ?? {}),
+          ...(latestMonthsByUser[selectedUserId] ?? {}),
           [key]: normalizeMonth({ ...month, moodByDay })
         }
       }
     });
 
-    if (get().supabaseReady && month.id) {
-      const { error } = await upsertMood(month.id, dayIndex + 1, mood);
+    if (get().supabaseReady) {
+      const persistedMonth = await get().refreshMonth(selectedYear, selectedMonth);
+      const monthId = persistedMonth?.id;
+      if (!monthId) {
+        set({
+          supabaseError:
+            "Update mood: Month has not been created in Supabase yet. Please try again."
+        });
+        return;
+      }
+
+      const { error } = await upsertMood(monthId, dayIndex + 1, mood);
       if (error) {
         console.error("[Supabase] Update mood", error);
         set({ supabaseError: `Update mood: ${error.message ?? "Unknown error"}` });
@@ -990,24 +1018,38 @@ export const useAppStore = create<Store>()((set, get) => ({
     const { selectedYear, selectedMonth, monthsByUser, selectedUserId } = get();
     if (!selectedUserId) return;
 
+    await get().ensureMonth(selectedYear, selectedMonth);
+
     const key = buildMonthKey(selectedYear, selectedMonth);
-    const month = monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const month =
+      get().monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const latestMonthsByUser = get().monthsByUser;
 
     const journalEntries = [...month.journalEntries];
     journalEntries[dayIndex] = entry;
 
     set({
       monthsByUser: {
-        ...monthsByUser,
+        ...latestMonthsByUser,
         [selectedUserId]: {
-          ...(monthsByUser[selectedUserId] ?? {}),
+          ...(latestMonthsByUser[selectedUserId] ?? {}),
           [key]: normalizeMonth({ ...month, journalEntries })
         }
       }
     });
 
-    if (get().supabaseReady && month.id) {
-      const { error } = await upsertJournal(month.id, dayIndex + 1, entry);
+    if (get().supabaseReady) {
+      const persistedMonth = await get().refreshMonth(selectedYear, selectedMonth);
+      const monthId = persistedMonth?.id;
+      if (!monthId) {
+        set({
+          supabaseError:
+            "Update journal entry: Month has not been created in Supabase yet. Please try again."
+        });
+        return;
+      }
+
+      const { error } = await upsertJournal(monthId, dayIndex + 1, entry);
       if (error) {
         console.error("[Supabase] Update journal entry", error);
         set({ supabaseError: `Update journal entry: ${error.message ?? "Unknown error"}` });
@@ -1024,24 +1066,44 @@ export const useAppStore = create<Store>()((set, get) => ({
     const trimmed = text.trim();
     if (!trimmed) return;
 
+    await get().ensureMonth(selectedYear, selectedMonth);
+
     const key = buildMonthKey(selectedYear, selectedMonth);
-    const month = monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const month =
+      get().monthsByUser[selectedUserId]?.[key] ?? createDefaultMonth(selectedYear, selectedMonth);
+    const latestMonthsByUser = get().monthsByUser;
+
+    if (!month.id && get().supabaseReady) {
+      set({
+        supabaseError: "Add weekly goal: Month has not been created in Supabase yet. Please try again."
+      });
+    }
 
     const weeklyGoal: WeeklyGoal = { id: createId(), text: trimmed, week, done: false };
     const weeklyGoals = [...month.weeklyGoals, weeklyGoal];
 
     set({
       monthsByUser: {
-        ...monthsByUser,
+        ...latestMonthsByUser,
         [selectedUserId]: {
-          ...(monthsByUser[selectedUserId] ?? {}),
+          ...(latestMonthsByUser[selectedUserId] ?? {}),
           [key]: normalizeMonth({ ...month, weeklyGoals })
         }
       }
     });
 
-    if (get().supabaseReady && month.id) {
-      const { error } = await insertWeeklyGoal(month.id, weeklyGoal, weeklyGoals.length - 1);
+    if (get().supabaseReady) {
+      const persistedMonth = await get().refreshMonth(selectedYear, selectedMonth);
+      const monthId = persistedMonth?.id;
+      if (!monthId) {
+        set({
+          supabaseError:
+            "Add weekly goal: Month has not been created in Supabase yet. Please try again."
+        });
+        return;
+      }
+
+      const { error } = await insertWeeklyGoal(monthId, weeklyGoal, weeklyGoals.length - 1);
       if (error) {
         console.error("[Supabase] Add weekly goal", error);
         set({ supabaseError: `Add weekly goal: ${error.message ?? "Unknown error"}` });

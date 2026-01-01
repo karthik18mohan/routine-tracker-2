@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type PointerEvent } from "react";
 import { useAppStore } from "@/store/useAppStore";
 
 const moodScale = [
@@ -43,6 +43,13 @@ export function MoodJournalCard() {
   useEffect(() => {
     setSliderValue(moodValue);
   }, [moodValue]);
+
+  const handleSliderPointerDown = (event: PointerEvent<HTMLInputElement>) => {
+    if (event.pointerType !== "mouse") {
+      event.preventDefault();
+    }
+    event.currentTarget.focus({ preventScroll: true });
+  };
 
   const commitMood = (value: number) => {
     const rounded = Math.round(value);
@@ -89,11 +96,12 @@ export function MoodJournalCard() {
           step={0.01}
           value={sliderValue}
           onChange={(event) => setSliderValue(Number(event.target.value))}
+          onPointerDown={handleSliderPointerDown}
           onPointerUp={(event) => commitMood(Number(event.currentTarget.value))}
           onTouchEnd={(event) => commitMood(Number(event.currentTarget.value))}
           onKeyUp={(event) => commitMood(Number(event.currentTarget.value))}
           className="mt-4 w-full touch-none"
-          style={{ touchAction: "pan-x" }}
+          style={{ touchAction: "none" }}
         />
       </div>
       <div>

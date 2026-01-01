@@ -10,7 +10,6 @@ import { TopHabitsTable } from "@/components/TopHabitsTable";
 import { WeeklyHabitsSection } from "@/components/WeeklyHabitsSection";
 import { WeeklyGoalsSection } from "@/components/WeeklyGoalsSection";
 import { MoodJournalCard } from "@/components/MoodJournalCard";
-import { MoodLineChart } from "@/components/MoodLineChart";
 import { DailySummaryCard } from "@/components/DailySummaryCard";
 import { UserPicker } from "@/components/UserPicker";
 import { useEffect } from "react";
@@ -20,6 +19,15 @@ import { monthOptions } from "@/lib/date";
 
 const DailyCompletionChart = dynamic(
   () => import("@/components/DailyCompletionChart").then((mod) => mod.DailyCompletionChart),
+  { ssr: false }
+);
+const MonthlyCompletionChart = dynamic(
+  () =>
+    import("@/components/MonthlyCompletionChart").then((mod) => mod.MonthlyCompletionChart),
+  { ssr: false }
+);
+const MoodLineChart = dynamic(
+  () => import("@/components/MoodLineChart").then((mod) => mod.MoodLineChart),
   { ssr: false }
 );
 
@@ -67,6 +75,11 @@ export default function DashboardPage() {
         }, 0);
   const dailyProgressPct =
     dailyTotal === 0 ? 0 : (dailyCompleted / dailyTotal) * 100;
+  const monthlyCounts = metrics.dailyCounts.reduce<number[]>((acc, count, index) => {
+    const previous = acc[index - 1] ?? 0;
+    acc.push(previous + count);
+    return acc;
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-4 py-6 md:px-8">
@@ -148,9 +161,12 @@ export default function DashboardPage() {
           />
         </section>
 
-        <section className="grid items-start gap-6 lg:grid-cols-2">
+        <section className="grid items-start gap-6 lg:grid-cols-2 xl:grid-cols-3">
           <DailyCompletionChart
             data={metrics.dailyCounts.map((count, index) => ({ day: index + 1, count }))}
+          />
+          <MonthlyCompletionChart
+            data={monthlyCounts.map((count, index) => ({ day: index + 1, count }))}
           />
           <MoodLineChart
             data={month.moodByDay.map((mood, index) => ({ day: index + 1, mood }))}
